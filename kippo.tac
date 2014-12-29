@@ -12,7 +12,7 @@ if sys.platform == 'win32':
 from twisted.internet import reactor, defer
 from twisted.application import internet, service
 from twisted.cred import portal
-from twisted.conch.ssh import factory, keys
+from twisted.conch.ssh import factory
 
 if os.name == 'posix' and os.getuid() == 0:
     print 'ERROR: You must not run kippo as root!'
@@ -33,13 +33,6 @@ factory.portal = portal.Portal(core.ssh.HoneyPotRealm())
 
 factory.portal.registerChecker(core.auth.HoneypotPublicKeyChecker())
 factory.portal.registerChecker(core.auth.HoneypotPasswordChecker())
-
-rsa_pubKeyString, rsa_privKeyString = core.ssh.getRSAKeys()
-dsa_pubKeyString, dsa_privKeyString = core.ssh.getDSAKeys()
-factory.publicKeys = {'ssh-rsa': keys.Key.fromString(data=rsa_pubKeyString),
-                      'ssh-dss': keys.Key.fromString(data=dsa_pubKeyString)}
-factory.privateKeys = {'ssh-rsa': keys.Key.fromString(data=rsa_privKeyString),
-                       'ssh-dss': keys.Key.fromString(data=dsa_privKeyString)}
 
 cfg = config()
 if cfg.has_option('honeypot', 'ssh_addr'):

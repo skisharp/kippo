@@ -29,6 +29,52 @@ import kippo.core.ssh
 import kippo.core.protocol
 from kippo import core
 
+def getRSAKeys():
+    cfg = config()
+    public_key = cfg.get('honeypot', 'rsa_public_key')
+    private_key = cfg.get('honeypot', 'rsa_private_key')
+    if not (os.path.exists(public_key) and os.path.exists(private_key)):
+        log.msg( "Generating new RSA keypair..." )
+        from Crypto.PublicKey import RSA
+        from twisted.python import randbytes
+        KEY_LENGTH = 2048
+        rsaKey = RSA.generate(KEY_LENGTH, randbytes.secureRandom)
+        publicKeyString = keys.Key(rsaKey).public().toString('openssh')
+        privateKeyString = keys.Key(rsaKey).toString('openssh')
+        with file(public_key, 'w+b') as f:
+            f.write(publicKeyString)
+        with file(private_key, 'w+b') as f:
+            f.write(privateKeyString)
+    else:
+        with file(public_key) as f:
+            publicKeyString = f.read()
+        with file(private_key) as f:
+            privateKeyString = f.read()
+    return publicKeyString, privateKeyString
+
+def getDSAKeys():
+    cfg = config()
+    public_key = cfg.get('honeypot', 'dsa_public_key')
+    private_key = cfg.get('honeypot', 'dsa_private_key')
+    if not (os.path.exists(public_key) and os.path.exists(private_key)):
+        log.msg( "Generating new DSA keypair..." )
+        from Crypto.PublicKey import DSA
+        from twisted.python import randbytes
+        KEY_LENGTH = 1024
+        dsaKey = DSA.generate(KEY_LENGTH, randbytes.secureRandom)
+        publicKeyString = keys.Key(dsaKey).public().toString('openssh')
+        privateKeyString = keys.Key(dsaKey).toString('openssh')
+        with file(public_key, 'w+b') as f:
+            f.write(publicKeyString)
+        with file(private_key, 'w+b') as f:
+            f.write(privateKeyString)
+    else:
+        with file(public_key) as f:
+            publicKeyString = f.read()
+        with file(private_key) as f:
+            privateKeyString = f.read()
+    return publicKeyString, privateKeyString
+
 class HoneyPotSSHUserAuthServer(userauth.SSHUserAuthServer):
     def serviceStarted(self):
         userauth.SSHUserAuthServer.serviceStarted(self)
@@ -59,6 +105,13 @@ class HoneyPotSSHUserAuthServer(userauth.SSHUserAuthServer):
 
 # As implemented by Kojoney
 class HoneyPotSSHFactory(factory.SSHFactory):
+    rsa_pubKeyString, rsa_privKeyString = getRSAKeys()
+    dsa_pubKeyString, dsa_privKeyString = getDSAKeys()
+    factory.publicKeys = {'ssh-rsa': keys.Key.fromString(data=rsa_pubKeyString),
+                          'ssh-dss': keys.Key.fromString(data=dsa_pubKeyString)}
+    factory.privateKeys = {'ssh-rsa': keys.Key.fromString(data=rsa_privKeyString),
+                           'ssh-dss': keys.Key.fromString(data=dsa_privKeyString)}
+
     services = {
         'ssh-userauth': HoneyPotSSHUserAuthServer,
         'ssh-connection': connection.SSHConnection,
@@ -322,53 +375,6 @@ class HoneyPotAvatar(avatar.ConchUser):
 
     def windowChanged(self, windowSize):
         self.windowSize = windowSize
-
-def getRSAKeys():
-    cfg = config()
-    public_key = cfg.get('honeypot', 'rsa_public_key')
-    private_key = cfg.get('honeypot', 'rsa_private_key')
-    if not (os.path.exists(public_key) and os.path.exists(private_key)):
-        log.msg( "Generating new RSA keypair..." )
-        from Crypto.PublicKey import RSA
-        from twisted.python import randbytes
-        KEY_LENGTH = 2048
-        rsaKey = RSA.generate(KEY_LENGTH, randbytes.secureRandom)
-        publicKeyString = keys.Key(rsaKey).public().toString('openssh')
-        privateKeyString = keys.Key(rsaKey).toString('openssh')
-        with file(public_key, 'w+b') as f:
-            f.write(publicKeyString)
-        with file(private_key, 'w+b') as f:
-            f.write(privateKeyString)
-    else:
-        with file(public_key) as f:
-            publicKeyString = f.read()
-        with file(private_key) as f:
-            privateKeyString = f.read()
-    return publicKeyString, privateKeyString
-
-def getDSAKeys():
-    cfg = config()
-    public_key = cfg.get('honeypot', 'dsa_public_key')
-    private_key = cfg.get('honeypot', 'dsa_private_key')
-    if not (os.path.exists(public_key) and os.path.exists(private_key)):
-        log.msg( "Generating new DSA keypair..." )
-        from Crypto.PublicKey import DSA
-        from twisted.python import randbytes
-        KEY_LENGTH = 1024
-        dsaKey = DSA.generate(KEY_LENGTH, randbytes.secureRandom)
-        publicKeyString = keys.Key(dsaKey).public().toString('openssh')
-        privateKeyString = keys.Key(dsaKey).toString('openssh')
-        with file(public_key, 'w+b') as f:
-            f.write(publicKeyString)
-        with file(private_key, 'w+b') as f:
-            f.write(privateKeyString)
-    else:
-        with file(public_key) as f:
-            publicKeyString = f.read()
-        with file(private_key) as f:
-            privateKeyString = f.read()
-    return publicKeyString, privateKeyString
-
 @implementer(conchinterfaces.ISFTPFile)
 class KippoSFTPFile:
 
