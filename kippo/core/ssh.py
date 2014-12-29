@@ -105,11 +105,13 @@ class HoneyPotSSHUserAuthServer(userauth.SSHUserAuthServer):
 
 # As implemented by Kojoney
 class HoneyPotSSHFactory(factory.SSHFactory):
+
     rsa_pubKeyString, rsa_privKeyString = getRSAKeys()
     dsa_pubKeyString, dsa_privKeyString = getDSAKeys()
-    factory.publicKeys = {'ssh-rsa': keys.Key.fromString(data=rsa_pubKeyString),
+
+    publicKeys = {'ssh-rsa': keys.Key.fromString(data=rsa_pubKeyString),
                           'ssh-dss': keys.Key.fromString(data=dsa_pubKeyString)}
-    factory.privateKeys = {'ssh-rsa': keys.Key.fromString(data=rsa_privKeyString),
+    privateKeys = {'ssh-rsa': keys.Key.fromString(data=rsa_privKeyString),
                            'ssh-dss': keys.Key.fromString(data=dsa_privKeyString)}
 
     services = {
