@@ -21,13 +21,13 @@
 # Port to listen for incoming SSH connections.
 #
 # (default: 2222)
-#listen_port = 2222
+listen_port = 22
 
 # Hostname for the honeypot. Displayed by the shell prompt of the virtual
 # environment.
 #
 # (default: svr03)
-hostname = svr03
+hostname = hm003
 
 # Directory where to save log files in.
 #
