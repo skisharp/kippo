@@ -11,7 +11,7 @@
 # connection as the sensor name.
 #
 # (default: not specified)
-#sensor_name=myhostname
+#sensor_name=test
 
 # IP addresses to listen for incoming SSH connections.
 #
@@ -27,7 +27,7 @@ listen_port = 22
 # environment.
 #
 # (default: svr03)
-hostname = hm003
+hostname = test
 
 # Directory where to save log files in.
 #
